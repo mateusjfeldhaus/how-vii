@@ -103,7 +103,7 @@ INSERT INTO pagamento (imovel_id, data_do_pagamento, valor_do_pagamento) VALUES
 
 INSERT INTO pagamento (imovel_id, data_do_pagamento, valor_do_pagamento) VALUES
   (4, '2025-04-15',  20000.00),
-  (4, '2025-07-01', 180000.00);
+  (4, '2025-07-01',  20000.00);
 
 INSERT INTO pagamento (imovel_id, data_do_pagamento, valor_do_pagamento) VALUES
   (5, '2025-03-08', 1800.00),
@@ -113,7 +113,7 @@ INSERT INTO pagamento (imovel_id, data_do_pagamento, valor_do_pagamento) VALUES
   (5, '2025-07-08', 1800.00);
 
 INSERT INTO pagamento (imovel_id, data_do_pagamento, valor_do_pagamento) VALUES
-  (6, '2025-05-20', 250000.00),
+  (6, '2025-05-20', 100000.00),
   (6, '2025-08-20', 100000.00);
 
 INSERT INTO pagamento (imovel_id, data_do_pagamento, valor_do_pagamento) VALUES
