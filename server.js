@@ -41,6 +41,100 @@ app.get("/pagamentos", async (_req, res) => {
   }
 });
 
+app.get("/totais", async (_req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT imovel_id, valor_do_pagamento
+      FROM pagamento
+    `);
+
+    const totais = rows.reduce((acc, row) => {
+      const id = row.imovel_id;
+      const valor = Number(row.valor_do_pagamento);
+      if (!acc[id]) {
+        acc[id] = 0;
+      }
+      acc[id] += valor;
+      return acc;
+    }, {});
+
+    res.json(totais);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro ao calcular totais." });
+  }
+});
+
+app.get("/totais-mensais", async (_req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT data_do_pagamento, valor_do_pagamento
+      FROM pagamento
+    `);
+
+    const totaisMensais = rows.reduce((acc, row) => {
+      const data = new Date(row.data_do_pagamento);
+
+      const mes = String(data.getMonth() + 1).padStart(2, "0");
+      const ano = data.getFullYear();
+      const chave = `${mes}/${ano}`;
+
+      if (!acc[chave]) {
+        acc[chave] = 0;
+      }
+      acc[chave] += Number(row.valor_do_pagamento);
+      return acc;
+    }, {});
+
+    const resultado = Object.entries(totaisMensais)
+      .sort((a, b) => {
+        const [ma, aa] = a[0].split("/").map(Number);
+        const [mb, ab] = b[0].split("/").map(Number);
+        return aa === ab ? ma - mb : aa - ab;
+      })
+      .map(([periodo, total]) => ({ periodo, total }));
+
+    res.json(resultado);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro ao calcular totais mensais." });
+  }
+});
+
+app.get("/tipos-percentual", async (_req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT t.nome AS tipo, COUNT(*) AS quantidade
+      FROM pagamento p
+      JOIN imovel i       ON i.id = p.imovel_id
+      JOIN tipo_imovel t  ON t.id = i.tipo_imovel_id
+      GROUP BY t.nome
+      ORDER BY t.nome
+    `);
+
+    const total = rows.reduce((sum, r) => sum + Number(r.quantidade), 0);
+
+    if (total === 0) {
+      return res.json([]);
+    }
+
+    const resultado = rows.map(r => ({
+      tipo: r.tipo,
+      quantidade: Number(r.quantidade),
+      percentual: Number(((Number(r.quantidade) / total) * 100).toFixed(2)) // ex.: 33.33
+    }));
+
+    res.json({
+      total_vendas: total,
+      distribuicao: resultado
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro ao calcular percentuais por tipo." });
+  }
+});
+
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`API rodando em http://localhost:${PORT}`);
